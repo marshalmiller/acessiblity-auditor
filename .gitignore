@@ -3,8 +3,31 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-# User-specific files
-*.rsuser
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+venv/
+.venv/
+env/
+.env
+instance/
+*.db
+*.sqlite3
+
+# Flask / App runtime
+uploads/
+instance/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+
 *.suo
 *.user
 *.userosscache

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Accessibility Auditor{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <header class="site-header">
+    <div class="container">
+      <a href="{{ url_for('index') }}" class="site-logo">
+        <span class="logo-icon" aria-hidden="true">♿</span>
+        Accessibility Auditor
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="{{ url_for('index') }}">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div role="alert" aria-live="assertive">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Powered by <a href="https://www.deque.com/axe/" target="_blank" rel="noopener noreferrer">axe-core</a>
+         &amp; <a href="https://pymupdf.readthedocs.io/" target="_blank" rel="noopener noreferrer">PyMuPDF</a></p>
+    </div>
+  </footer>
+</body>
+</html>

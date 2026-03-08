@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Audit: {{ audit.target | truncate(50) }} — Accessibility Auditor{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb">
+  <ol class="breadcrumb">
+    <li><a href="{{ url_for('index') }}">Home</a></li>
+    <li aria-current="page">Audit #{{ audit.id }}</li>
+  </ol>
+</nav>
+
+<section class="audit-header card" aria-labelledby="audit-heading">
+  <div class="audit-meta">
+    <h1 id="audit-heading">
+      Accessibility Audit
+      <span class="badge badge-type badge-{{ audit.audit_type }}">{{ audit.audit_type | upper }}</span>
+    </h1>
+    <p class="audit-target">
+      {% if audit.audit_type == "url" %}
+        <a href="{{ audit.target }}" target="_blank" rel="noopener noreferrer">{{ audit.target }}</a>
+      {% else %}
+        <code>{{ audit.target }}</code>
+      {% endif %}
+    </p>
+    <p class="audit-date">
+      Audited on
+      <time datetime="{{ audit.created_at.isoformat() }}">
+        {{ audit.created_at.strftime('%B %d, %Y at %H:%M UTC') }}
+      </time>
+    </p>
+  </div>
+
+  {% if audit.status == "error" %}
+    <div class="alert alert-danger" role="alert">
+      <strong>Audit failed:</strong> {{ audit.error_message }}
+    </div>
+  {% else %}
+    <div class="score-panel" aria-label="Audit score summary">
+      <div class="score-circle score-{{ 'good' if audit.score >= 80 else ('warn' if audit.score >= 50 else 'bad') }}"
+           aria-label="Accessibility score: {{ audit.score }} out of 100">
+        <span class="score-number">{{ audit.score }}</span>
+        <span class="score-label">/ 100</span>
+      </div>
+      <div class="score-breakdown">
+        <dl class="stats-grid">
+          <div class="stat">
+            <dt>Violations</dt>
+            <dd class="{{ 'text-danger' if audit.violations_count > 0 else 'text-success' }}">
+              {{ audit.violations_count }}
+            </dd>
+          </div>
+          <div class="stat">
+            <dt>Passes</dt>
+            <dd class="text-success">{{ audit.passes_count }}</dd>
+          </div>
+          <div class="stat">
+            <dt>Incomplete</dt>
+            <dd class="{{ 'text-warning' if audit.incomplete_count > 0 else '' }}">
+              {{ audit.incomplete_count }}
+            </dd>
+          </div>
+          <div class="stat">
+            <dt>Inapplicable</dt>
+            <dd>{{ audit.inapplicable_count }}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+{% if audit.status == "success" %}
+
+  <!-- Violations -->
+  {% if results.violations %}
+    <section class="results-section" aria-labelledby="violations-heading">
+      <h2 id="violations-heading" class="section-heading section-heading--violations">
+        <span aria-hidden="true">❌</span>
+        Violations ({{ results.violations | length }})
+      </h2>
+      <p class="section-desc">These are confirmed accessibility failures that need to be fixed.</p>
+      {% for item in results.violations %}
+        {{ render_result_item(item, "violation") }}
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <!-- Incomplete -->
+  {% if results.incomplete %}
+    <section class="results-section" aria-labelledby="incomplete-heading">
+      <h2 id="incomplete-heading" class="section-heading section-heading--incomplete">
+        <span aria-hidden="true">⚠️</span>
+        Needs Review ({{ results.incomplete | length }})
+      </h2>
+      <p class="section-desc">These items could not be automatically determined — manual review is needed.</p>
+      {% for item in results.incomplete %}
+        {{ render_result_item(item, "incomplete") }}
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <!-- Passes -->
+  {% if results.passes %}
+    <section class="results-section" aria-labelledby="passes-heading">
+      <h2 id="passes-heading" class="section-heading section-heading--passes">
+        <span aria-hidden="true">✅</span>
+        Passed Checks ({{ results.passes | length }})
+      </h2>
+      <p class="section-desc">These accessibility checks passed.</p>
+      <details>
+        <summary>Show {{ results.passes | length }} passing checks</summary>
+        {% for item in results.passes %}
+          {{ render_result_item(item, "pass") }}
+        {% endfor %}
+      </details>
+    </section>
+  {% endif %}
+
+  {% if not results.violations and not results.incomplete and not results.passes %}
+    <div class="alert alert-info" role="status">
+      No accessibility issues detected and no checks were run. The page may have been empty or unreachable.
+    </div>
+  {% endif %}
+
+{% endif %}
+
+<div class="detail-actions">
+  <a href="{{ url_for('index') }}" class="btn btn-outline">← Back to Home</a>
+  <form action="{{ url_for('delete_audit', audit_id=audit.id) }}" method="POST"
+        data-confirm="Delete this audit permanently?"
+        style="display:inline;">
+    <button type="submit" class="btn btn-danger-outline">Delete Audit</button>
+  </form>
+</div>
+{% endblock %}
+
+{% macro render_result_item(item, kind) %}
+<article class="result-item result-item--{{ kind }}"
+         aria-label="{{ item.id }}: {{ item.description | truncate(80) }}">
+  <header class="result-item__header">
+    <div class="result-item__title-row">
+      <code class="result-id">{{ item.id }}</code>
+      {% if item.impact %}
+        <span class="badge badge-impact badge-impact--{{ item.impact }}">{{ item.impact }}</span>
+      {% endif %}
+      {% for tag in (item.tags or [])[:4] %}
+        <span class="badge badge-tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    <p class="result-description">{{ item.description }}</p>
+  </header>
+
+  {% if item.helpUrl %}
+    <p class="result-help">
+      <a href="{{ item.helpUrl }}" target="_blank" rel="noopener noreferrer">
+        Learn more about {{ item.id }}
+      </a>
+    </p>
+  {% endif %}
+
+  {% if item.nodes %}
+    <details class="result-nodes">
+      <summary>{{ item.nodes | length }} affected element(s)</summary>
+      <ul class="nodes-list">
+        {% for node in item.nodes[:20] %}
+          <li class="node-item">
+            {% if node.html %}
+              <pre class="node-html"><code>{{ node.html | truncate(200) }}</code></pre>
+            {% endif %}
+            {% if node.failureSummary %}
+              <p class="node-failure">{{ node.failureSummary }}</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+        {% if item.nodes | length > 20 %}
+          <li><em>… and {{ item.nodes | length - 20 }} more.</em></li>
+        {% endif %}
+      </ul>
+    </details>
+  {% endif %}
+</article>
+{% endmacro %}

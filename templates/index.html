@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Accessibility Auditor — Home{% endblock %}
+
+{% block content %}
+<section class="hero" aria-labelledby="hero-heading">
+  <h1 id="hero-heading">Accessibility Auditor</h1>
+  <p class="lead">
+    Check websites, HTML files, and PDF documents for accessibility issues using
+    <strong>axe-core</strong> (WCAG 2.0/2.1 AA) and document-level checks.
+  </p>
+</section>
+
+<div class="audit-forms">
+  <!-- URL Check Form -->
+  <section class="card" aria-labelledby="url-form-heading">
+    <h2 id="url-form-heading">Check a Website URL</h2>
+    <form action="{{ url_for('audit_url') }}" method="POST">
+      <div class="form-group">
+        <label for="url-input">Website URL</label>
+        <input
+          type="url"
+          id="url-input"
+          name="url"
+          placeholder="https://example.com"
+          required
+          aria-describedby="url-hint"
+          class="form-control"
+        />
+        <small id="url-hint" class="form-hint">Enter any public web address to check for accessibility issues.</small>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <span aria-hidden="true">🔍</span> Run Audit
+      </button>
+    </form>
+  </section>
+
+  <!-- File Upload Form -->
+  <section class="card" aria-labelledby="file-form-heading">
+    <h2 id="file-form-heading">Check a File</h2>
+    <form action="{{ url_for('audit_file') }}" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="file-input">Upload PDF or HTML File</label>
+        <input
+          type="file"
+          id="file-input"
+          name="file"
+          accept=".pdf,.html,.htm"
+          required
+          aria-describedby="file-hint"
+          class="form-control"
+        />
+        <small id="file-hint" class="form-hint">Supported formats: PDF, HTML. Maximum size: 16 MB.</small>
+      </div>
+      <button type="submit" class="btn btn-secondary">
+        <span aria-hidden="true">📄</span> Upload &amp; Audit
+      </button>
+    </form>
+  </section>
+</div>
+
+<!-- Audit History -->
+<section class="audit-history" aria-labelledby="history-heading">
+  <h2 id="history-heading">
+    Audit History
+    {% if audits %}
+      <span class="badge">{{ audits | length }}</span>
+    {% endif %}
+  </h2>
+
+  {% if not audits %}
+    <div class="empty-state">
+      <p>No audits yet. Enter a URL or upload a file above to get started.</p>
+    </div>
+  {% else %}
+    <div class="table-wrapper" role="region" aria-label="Audit history table" tabindex="0">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th scope="col">Target</th>
+            <th scope="col">Type</th>
+            <th scope="col">Score</th>
+            <th scope="col">Violations</th>
+            <th scope="col">Passes</th>
+            <th scope="col">Date</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for audit in audits %}
+            <tr>
+              <td class="target-cell">
+                <a href="{{ url_for('audit_detail', audit_id=audit.id) }}" title="{{ audit.target }}">
+                  {{ audit.target | truncate(60) }}
+                </a>
+              </td>
+              <td>
+                <span class="badge badge-type badge-{{ audit.audit_type }}">
+                  {{ audit.audit_type | upper }}
+                </span>
+              </td>
+              <td>
+                {% if audit.status == "success" %}
+                  <span class="score score-{{ 'good' if audit.score >= 80 else ('warn' if audit.score >= 50 else 'bad') }}"
+                        title="Accessibility score: {{ audit.score }}/100">
+                    {{ audit.score }}
+                  </span>
+                {% else %}
+                  <span class="badge badge-error">Error</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if audit.status == "success" %}
+                  <span class="{{ 'text-danger' if audit.violations_count > 0 else 'text-success' }}">
+                    {{ audit.violations_count }}
+                  </span>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if audit.status == "success" %}{{ audit.passes_count }}{% else %}—{% endif %}
+              </td>
+              <td>
+                <time datetime="{{ audit.created_at.isoformat() }}">
+                  {{ audit.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </time>
+              </td>
+              <td class="actions-cell">
+                <a href="{{ url_for('audit_detail', audit_id=audit.id) }}" class="btn btn-sm btn-outline">
+                  View
+                </a>
+                <form action="{{ url_for('delete_audit', audit_id=audit.id) }}" method="POST"
+                      style="display:inline;"
+                      data-confirm="Delete this audit?">
+                  <button type="submit" class="btn btn-sm btn-danger-outline"
+                          aria-label="Delete audit for {{ audit.target | truncate(30) }}">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
