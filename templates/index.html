@@ -59,7 +59,7 @@
 
   <!-- Markdown Converter Form -->
   <section class="card" aria-labelledby="markdown-form-heading">
-    <h2 id="markdown-form-heading">Convert to Markdown</h2>
+    <h2 id="markdown-form-heading">Convert to Markdown <span class="badge badge-info">Advanced</span></h2>
     <form action="{{ url_for('convert_url_to_markdown') }}" method="POST">
       <div class="form-group">
         <label for="markdown-url-input">Website URL</label>
@@ -78,6 +78,23 @@
         <span aria-hidden="true">📝</span> Convert to Markdown
       </button>
     </form>
+  </section>
+
+  <!-- BrowserStack Accessibility Tool -->
+  <section class="card" aria-labelledby="browserstack-heading">
+    <h2 id="browserstack-heading">BrowserStack Accessibility <span class="badge badge-info">Advanced</span></h2>
+    <p class="card-description">Professional accessibility testing with real devices and browsers:</p>
+    <ul class="feature-list">
+      <li>Test across 3000+ real browsers and devices</li>
+      <li>Automated WCAG 2.1 AA compliance scanning</li>
+      <li>Screen reader testing (NVDA, JAWS, VoiceOver)</li>
+      <li>Keyboard navigation validation</li>
+      <li>Detailed issue tracking and reports</li>
+    </ul>
+    <a href="https://accessibility.browserstack.com" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+      <span aria-hidden="true">🌐</span> Open BrowserStack Accessibility
+      <span aria-hidden="true">↗</span>
+    </a>
   </section>
 </div>
 

@@ -148,6 +148,34 @@ main.container { padding-top: 2rem; padding-bottom: 3rem; flex: 1; }
 
 .audit-forms h2 { font-size: 1.2rem; margin-bottom: 1.25rem; }
 
+.card-description {
+  color: var(--color-text-muted);
+  margin-bottom: .75rem;
+  font-size: .95rem;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem 0;
+}
+
+.feature-list li {
+  padding: .5rem 0 .5rem 1.75rem;
+  position: relative;
+  font-size: .9rem;
+  color: var(--color-text);
+}
+
+.feature-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
 /* --- Form elements ------------------------------------------ */
 .form-group { margin-bottom: 1rem; }
 
@@ -251,6 +279,7 @@ main.container { padding-top: 2rem; padding-bottom: 3rem; flex: 1; }
 .badge-impact--minor    { background: #ffc107; color: #000; }
 
 .badge-tag { background: #e9ecef; color: #495057; font-size: .7rem; }
+.badge-info { background: #0dcaf0; color: #000; font-size: .7rem; font-weight: 600; }
 
 /* --- Score -------------------------------------------------- */
 .score {
