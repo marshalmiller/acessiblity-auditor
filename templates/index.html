@@ -6,8 +6,7 @@
 <section class="hero" aria-labelledby="hero-heading">
   <h1 id="hero-heading">Accessibility Auditor</h1>
   <p class="lead">
-    Check websites, HTML files, and PDF documents for accessibility issues using
-    <strong>axe-core</strong> (WCAG 2.0/2.1 AA) and document-level checks.
+    Check websites, HTML files, PDF documents, and Word documents for accessibility issues (WCAG 2.2 AA) and document-level checks. You can also convert web pages to accessible Markdown format.
   </p>
 </section>
 
@@ -40,20 +39,43 @@
     <h2 id="file-form-heading">Check a File</h2>
     <form action="{{ url_for('audit_file') }}" method="POST" enctype="multipart/form-data">
       <div class="form-group">
-        <label for="file-input">Upload PDF or HTML File</label>
+        <label for="file-input">Upload PDF, HTML, or Word File</label>
         <input
           type="file"
           id="file-input"
           name="file"
-          accept=".pdf,.html,.htm"
+          accept=".pdf,.html,.htm,.docx"
           required
           aria-describedby="file-hint"
           class="form-control"
         />
-        <small id="file-hint" class="form-hint">Supported formats: PDF, HTML. Maximum size: 16 MB.</small>
+        <small id="file-hint" class="form-hint">Supported formats: PDF, HTML, Word (.docx). Maximum size: 16 MB.</small>
       </div>
       <button type="submit" class="btn btn-secondary">
         <span aria-hidden="true">📄</span> Upload &amp; Audit
+      </button>
+    </form>
+  </section>
+
+  <!-- Markdown Converter Form -->
+  <section class="card" aria-labelledby="markdown-form-heading">
+    <h2 id="markdown-form-heading">Convert to Markdown</h2>
+    <form action="{{ url_for('convert_url_to_markdown') }}" method="POST">
+      <div class="form-group">
+        <label for="markdown-url-input">Website URL</label>
+        <input
+          type="url"
+          id="markdown-url-input"
+          name="url"
+          placeholder="https://example.com"
+          required
+          aria-describedby="markdown-hint"
+          class="form-control"
+        />
+        <small id="markdown-hint" class="form-hint">Convert any webpage to accessible Markdown format for easier reading and editing.</small>
+      </div>
+      <button type="submit" class="btn btn-accent">
+        <span aria-hidden="true">📝</span> Convert to Markdown
       </button>
     </form>
   </section>

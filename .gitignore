@@ -439,3 +439,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/.vscode
+
+# Docker
+.env
+docker-compose.override.yml

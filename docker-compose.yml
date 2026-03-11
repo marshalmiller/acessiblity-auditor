@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: accessibility-auditor
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist database
+      - ./instance:/app/instance
+      # Persist uploaded files
+      - auditor-uploads:/tmp/accessibility_uploads
+    environment:
+      - FLASK_APP=app.py
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-change-in-production}
+      - DATABASE_URL=sqlite:///audits.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  auditor-uploads:

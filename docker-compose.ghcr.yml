@@ -1,0 +1,29 @@
+# Docker Compose configuration using pre-built image from GitHub Container Registry
+# This is an alternative to building locally - uses the published image instead
+# Usage: docker-compose -f docker-compose.ghcr.yml up -d
+
+version: '3.8'
+
+services:
+  web:
+    image: ghcr.io/marshalmiller/acessiblity-auditor:latest
+    container_name: accessibility-auditor
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./instance:/app/instance
+      - auditor-uploads:/tmp
+    environment:
+      - FLASK_APP=app.py
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DATABASE_URL=sqlite:////app/instance/audits.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  auditor-uploads:

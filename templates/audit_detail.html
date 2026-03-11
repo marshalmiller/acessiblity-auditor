@@ -70,6 +70,97 @@
   {% endif %}
 </section>
 
+<!-- Historical Trends Section -->
+{% if history and history | length > 1 %}
+<section class="history-section card" aria-labelledby="history-heading">
+  <h2 id="history-heading" class="section-heading">
+    <span aria-hidden="true">📊</span>
+    Historical Trends ({{ history | length }} audits)
+  </h2>
+  <p class="section-desc">Track how accessibility scores have changed over time.</p>
+  
+  <div class="history-timeline">
+    {% for h in history %}
+    <div class="history-item {% if h.id == audit.id %}history-item--current{% endif %}">
+      <div class="history-badge">
+        {% if h.rerun_number == 0 %}
+          <span class="badge badge-original">Original</span>
+        {% else %}
+          <span class="badge badge-rerun">Run #{{ h.rerun_number }}</span>
+        {% endif %}
+        {% if h.id == audit.id %}
+          <span class="badge badge-current">Current</span>
+        {% endif %}
+      </div>
+      
+      <div class="history-content">
+        <div class="history-meta">
+          <time datetime="{{ h.created_at.isoformat() }}">
+            {{ h.created_at.strftime('%b %d, %Y at %H:%M UTC') }}
+          </time>
+          {% if h.id != audit.id %}
+            <a href="{{ url_for('audit_detail', audit_id=h.id) }}" class="history-link">View Details</a>
+          {% endif %}
+        </div>
+        
+        {% if h.status == "error" %}
+          <div class="history-error">
+            <strong>Error:</strong> {{ h.error_message | truncate(100) }}
+          </div>
+        {% else %}
+          <div class="history-stats">
+            <div class="history-score score-{{ 'good' if h.score >= 80 else ('warn' if h.score >= 50 else 'bad') }}">
+              <strong>{{ h.score }}</strong>/100
+            </div>
+            <div class="history-violations">
+              <span class="stat-label">Violations:</span>
+              <span class="{{ 'text-danger' if h.violations_count > 0 else 'text-success' }}">
+                {{ h.violations_count }}
+              </span>
+            </div>
+            <div class="history-passes">
+              <span class="stat-label">Passes:</span>
+              <span class="text-success">{{ h.passes_count }}</span>
+            </div>
+            <div class="history-incomplete">
+              <span class="stat-label">Incomplete:</span>
+              <span class="{{ 'text-warning' if h.incomplete_count > 0 else '' }}">
+                {{ h.incomplete_count }}
+              </span>
+            </div>
+          </div>
+          
+          {% if loop.index > 1 %}
+            {% set prev = history[loop.index0 - 1] %}
+            {% if prev.status == "success" %}
+              {% set score_diff = h.score - prev.score %}
+              {% set violations_diff = h.violations_count - prev.violations_count %}
+              <div class="history-change">
+                <span class="change-label">Change:</span>
+                {% if score_diff > 0 %}
+                  <span class="change-positive">↑ {{ score_diff|round(1) }} points</span>
+                {% elif score_diff < 0 %}
+                  <span class="change-negative">↓ {{ (score_diff|abs)|round(1) }} points</span>
+                {% else %}
+                  <span class="change-neutral">No change in score</span>
+                {% endif %}
+                
+                {% if violations_diff != 0 %}
+                  <span class="change-detail">
+                    ({{ violations_diff|abs }} {{ 'more' if violations_diff > 0 else 'fewer' }} violation{{ 's' if violations_diff|abs != 1 else '' }})
+                  </span>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% if audit.status == "success" %}
 
   <!-- Violations -->
@@ -127,6 +218,17 @@
 
 <div class="detail-actions">
   <a href="{{ url_for('index') }}" class="btn btn-outline">← Back to Home</a>
+  
+  {% if audit.audit_type == "url" %}
+    <form action="{{ url_for('rerun_audit', audit_id=audit.id) }}" method="POST" style="display:inline;">
+      <button type="submit" class="btn btn-primary">🔄 Rerun Audit</button>
+    </form>
+    
+    <form action="{{ url_for('convert_audit_to_markdown', audit_id=audit.id) }}" method="POST" style="display:inline;">
+      <button type="submit" class="btn btn-secondary">📝 Convert to Markdown</button>
+    </form>
+  {% endif %}
+  
   <form action="{{ url_for('delete_audit', audit_id=audit.id) }}" method="POST"
         data-confirm="Delete this audit permanently?"
         style="display:inline;">
